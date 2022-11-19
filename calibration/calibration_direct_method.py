@@ -12,13 +12,13 @@ flags:  - (unused)
 params: Reference to list that contains the collected points
 
 """
-def click_event(event, x, y, flags, params):
+def collect_calibration_points(event, x, y, flags, points):
     # remove last item from list of points on leftclick
     if event==cv2.EVENT_LBUTTONDOWN:
-        if len(params)!=0:
-            print(str(params.pop()) + " removed")
+        if len(points)!=0:
+            print(str(points.pop()) + " removed")
     # collect point on rightclick
-    if event==cv2.EVENT_RBUTTONDOWN and len(params)<6:
+    if event==cv2.EVENT_RBUTTONDOWN and len(points)<6:
         print((x, y))
         points.append((x, y))
 
@@ -76,100 +76,104 @@ def calibration_direct_method(M, m):
 
     return P, K, R, t 
 
+def main():
 
-# collect points indicated by user
-points = []
-img = cv2.imread('image1.jpg')
-img_resized = cv2.resize(img, (int(img.shape[1]/4), int(img.shape[0]/4)))
-cv2.imshow("image", img_resized)
-coordinates = cv2.setMouseCallback('image', click_event, points)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    # collect points indicated by user
+    points = []
+    img = cv2.imread('image1.jpg')
+    img_resized = cv2.resize(img, (int(img.shape[1]/4), int(img.shape[0]/4)))
+    cv2.imshow("image", img_resized)
+    cv2.setMouseCallback('image', collect_calibration_points, points)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-# real-world 3D-calibration points
-M = np.asarray([np.asarray([0,0,0,1], dtype=float),
-                np.asarray([0,0,4,1], dtype=float),
-                np.asarray([0,23,4,1], dtype=float),
-                np.asarray([14.5,23,4,1], dtype=float),
-                np.asarray([14.5,0,4,1], dtype=float),
-                np.asarray([14.5,0,0,1], dtype=float)])
+    # real-world 3D-calibration points
+    M = np.asarray([np.asarray([0,0,0,1], dtype=float),
+                    np.asarray([0,0,4,1], dtype=float),
+                    np.asarray([0,23,4,1], dtype=float),
+                    np.asarray([14.5,23,4,1], dtype=float),
+                    np.asarray([14.5,0,4,1], dtype=float),
+                    np.asarray([14.5,0,0,1], dtype=float)])
 
-# 2D projections
-m = np.asarray([np.asarray([points[0][0], points[0][1], 1]),
-                np.asarray([points[1][0], points[1][1], 1]),
-                np.asarray([points[2][0], points[2][1], 1]),
-                np.asarray([points[3][0], points[3][1], 1]),
-                np.asarray([points[4][0], points[4][1], 1]),
-                np.asarray([points[5][0], points[5][1], 1])])
+    # 2D projections
+    m = np.asarray([np.asarray([points[0][0], points[0][1], 1]),
+                    np.asarray([points[1][0], points[1][1], 1]),
+                    np.asarray([points[2][0], points[2][1], 1]),
+                    np.asarray([points[3][0], points[3][1], 1]),
+                    np.asarray([points[4][0], points[4][1], 1]),
+                    np.asarray([points[5][0], points[5][1], 1])])
 
-P, K, R, t = calibration_direct_method(M, m)
+    P, K, R, t = calibration_direct_method(M, m)
 
-print("Projection Matrix P: ")
-print(P)
+    print("Projection Matrix P: ")
+    print(P)
 
-print("Intrinsic Parameters K: ")
-print(K)
+    print("Intrinsic Parameters K: ")
+    print(K)
 
-print("Extrinsic Parameters R, t: ")
-print(R)
-print(t)
+    print("Extrinsic Parameters R, t: ")
+    print(R)
+    print(t)
 
 
-####### DEMO #######
+    ####### DEMO #######
 
-# Project calibration points and see if it works
-cpy_img_resized = np.copy(img_resized)
-for Mi in M:
-    # project points AND! scale them to lie inside the image plane (3rd coordinate=1)
-    mi = P.dot(Mi[:,np.newaxis])
-    mi = mi/mi[2,0]
-    cv2.circle(cpy_img_resized, (int(mi[0,0]), int(mi[1,0])), 2, color=(0,255,0), thickness=-1)
-cv2.imshow("image", cpy_img_resized)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    # Project calibration points and see if it works
+    cpy_img_resized = np.copy(img_resized)
+    for Mi in M:
+        # project points AND! scale them to lie inside the image plane (3rd coordinate=1)
+        mi = P.dot(Mi[:,np.newaxis])
+        mi = mi/mi[2,0]
+        cv2.circle(cpy_img_resized, (int(mi[0,0]), int(mi[1,0])), 2, color=(0,255,0), thickness=-1)
+    cv2.imshow("image", cpy_img_resized)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
-# Do some more projections
-cpy_img_resized = np.copy(img_resized)
-for i in np.arange(-10, 10):
-    # x-axis-projection
-    proj_x = np.reshape(P.dot(np.asarray([i*2,0,0,1])), (3,1), 'F')
-    proj_x = proj_x/proj_x[2,0]
-    cv2.circle(cpy_img_resized, (int(proj_x[0,0]), int(proj_x[1,0])), 1, color=(0,0,255), thickness=-1)
-    # y-axis-projection
-    proj_y = np.reshape(P.dot(np.asarray([0,i*2,0,1])), (3,1), 'F')
-    proj_y = proj_y/proj_y[2,0]
-    cv2.circle(cpy_img_resized, (int(proj_y[0,0]), int(proj_y[1,0])), 1, color=(0,0,255), thickness=-1)
-    # z-axis-projection
-    proj_z = np.reshape(P.dot(np.asarray([0,0,i*2,1])), (3,1), 'F')
-    proj_z = proj_z/proj_z[2,0]
-    cv2.circle(cpy_img_resized, (int(proj_z[0,0]), int(proj_z[1,0])), 1, color=(0,0,255), thickness=-1)
-for i in np.arange(-10, 10, 0.5):
-    # projection of sample-points of function f(y)=(0, y, cos(y)) 
-    # -> draw cosine of y in plane x=0 where z represents the function value 
-    proj_z = np.reshape(P.dot(np.asarray([0,i,np.cos(i),1])), (3,1), 'F')
-    proj_z = proj_z/proj_z[2,0]
-    cv2.circle(cpy_img_resized, (int(proj_z[0,0]), int(proj_z[1,0])), 1, color=(0,0,0), thickness=-1)
+    # Do some more projections
+    cpy_img_resized = np.copy(img_resized)
+    for i in np.arange(-10, 10):
+        # x-axis-projection
+        proj_x = np.reshape(P.dot(np.asarray([i*2,0,0,1])), (3,1), 'F')
+        proj_x = proj_x/proj_x[2,0]
+        cv2.circle(cpy_img_resized, (int(proj_x[0,0]), int(proj_x[1,0])), 1, color=(0,0,255), thickness=-1)
+        # y-axis-projection
+        proj_y = np.reshape(P.dot(np.asarray([0,i*2,0,1])), (3,1), 'F')
+        proj_y = proj_y/proj_y[2,0]
+        cv2.circle(cpy_img_resized, (int(proj_y[0,0]), int(proj_y[1,0])), 1, color=(0,0,255), thickness=-1)
+        # z-axis-projection
+        proj_z = np.reshape(P.dot(np.asarray([0,0,i*2,1])), (3,1), 'F')
+        proj_z = proj_z/proj_z[2,0]
+        cv2.circle(cpy_img_resized, (int(proj_z[0,0]), int(proj_z[1,0])), 1, color=(0,0,255), thickness=-1)
+    for i in np.arange(-10, 10, 0.5):
+        # projection of sample-points of function f(y)=(0, y, cos(y)) 
+        # -> draw cosine of y in plane x=0 where z represents the function value 
+        proj_z = np.reshape(P.dot(np.asarray([0,i,np.cos(i),1])), (3,1), 'F')
+        proj_z = proj_z/proj_z[2,0]
+        cv2.circle(cpy_img_resized, (int(proj_z[0,0]), int(proj_z[1,0])), 1, color=(0,0,0), thickness=-1)
 
-# Define corners of a rectangle on top of the table in 3D space and project it onto image
-#cpy_img_resized = np.copy(img_resized)
-corner_points = [np.asarray([-10,0,0,1]),
-                np.asarray([-20,0,0,1]),
-                np.asarray([-10,20,0,1]),
-                np.asarray([-20,20,0,1]),
-                np.asarray([-10,0,5,1]),
-                np.asarray([-20,0,5,1]),
-                np.asarray([-10,20,5,1]),
-                np.asarray([-20,20,5,1])]
+    # Define corners of a rectangle on top of the table in 3D space and project it onto image
+    #cpy_img_resized = np.copy(img_resized)
+    corner_points = [np.asarray([-10,0,0,1]),
+                    np.asarray([-20,0,0,1]),
+                    np.asarray([-10,20,0,1]),
+                    np.asarray([-20,20,0,1]),
+                    np.asarray([-10,0,5,1]),
+                    np.asarray([-20,0,5,1]),
+                    np.asarray([-10,20,5,1]),
+                    np.asarray([-20,20,5,1])]
 
-for point1 in corner_points:
-    for point2 in corner_points:
-        if np.sum(point1==point2)==3:
-            point_proj1 = P.dot(point1)
-            point_proj1 = point_proj1/point_proj1[2]
-            point_proj2 = P.dot(point2)
-            point_proj2 = point_proj2/point_proj2[2]
-            cv2.line(cpy_img_resized, (int(point_proj1[0]), int(point_proj1[1])), (int(point_proj2[0]), int(point_proj2[1])), color=(255,0,0), thickness=1)
+    for point1 in corner_points:
+        for point2 in corner_points:
+            if np.sum(point1==point2)==3:
+                point_proj1 = P.dot(point1)
+                point_proj1 = point_proj1/point_proj1[2]
+                point_proj2 = P.dot(point2)
+                point_proj2 = point_proj2/point_proj2[2]
+                cv2.line(cpy_img_resized, (int(point_proj1[0]), int(point_proj1[1])), (int(point_proj2[0]), int(point_proj2[1])), color=(255,0,0), thickness=1)
 
-cv2.imshow("image", cpy_img_resized)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    cv2.imshow("image", cpy_img_resized)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()
