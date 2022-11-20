@@ -5,5 +5,6 @@ course 'Computer Vision', University of Verona, 2022.
 
 ## Topics
 
-Camera Calibration
+- Camera Calibration
+- Triangulation and Epipolar Geometry
 
