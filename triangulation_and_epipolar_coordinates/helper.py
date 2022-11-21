@@ -47,6 +47,8 @@ def read_projection_matrix_from_file(path):
 
     return P, K, R, t
 
+"""Perform the direct calibration method for the two example image scenes found in the data directory
+"""
 def calibrate_book_scenes_example():
     # Read in images
     img1 = cv2.imread('data/scene1.jpg')
