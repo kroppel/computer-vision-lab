@@ -9,12 +9,22 @@ spec.loader.exec_module(calibration_direct_method)
 
 LOAD_PROJECTION_MATRICES_FROM_FILE = True
 
+"""Collect point on right mouse click and add it to a list
+"""
 def collect_points(event, x, y, flags, points):
     # collect point on rightclick
     if event==cv2.EVENT_RBUTTONDOWN:
         print((x, y))
         points.append(np.asarray([x, y])[:,np.newaxis])
 
+"""Draw the epipolar line of point m from first scene onto image showing the second scene
+
+Params:
+    img (np.ndarray:    image to draw onto
+    P1 (np.ndarray):    perspective matrix of first scene
+    P2 (np.ndarray):    perspective matrix of second scene
+    m (np.ndarray):     reference point of first scene
+"""
 def draw_epipolar_line(img, P1, P2, m):
     e_prime = -P2[0:3,0:3].dot(np.linalg.inv(P1[0:3,0:3]).dot(P1[:,-1][:,np.newaxis])) + P2[:,-1][:,np.newaxis]
     e_prime /= e_prime[-1]
@@ -22,6 +32,15 @@ def draw_epipolar_line(img, P1, P2, m):
     p_inf /= p_inf[-1]
     cv2.line(img, (int(e_prime[0]), int(e_prime[1])), (int(p_inf[0]), int(p_inf[1])), color=(255,0,0), thickness=1)
 
+"""Write calibration parameters P, K, R, and t to file indicated by path
+
+Params:
+    path (str):     path to file
+    P (np.ndarray): projection matrix 3x4 with 8 byte float values
+    K (np.ndarray): matrix of internal parameters 3x3 with 8 byte float values
+    R (np.ndarray): rotation matrix 3x3 with 8 byte float values
+    t (np.ndarray): translation vector 3x1 with 8 byte float values
+"""
 def write_calibration_parameters_to_file(path, P, K, R, t):
     f = open(path, "wb")
     f.write(P.tobytes(order='C'))
@@ -30,6 +49,17 @@ def write_calibration_parameters_to_file(path, P, K, R, t):
     f.write(t.tobytes(order='C'))
     f.close()
 
+"""Read calibration parameters P, K, R, and t from file indicated by path
+
+Params:
+    path (str):     path to file
+
+Returns:
+    P (np.ndarray): projection matrix 3x4 with 8 byte float values
+    K (np.ndarray): matrix of internal parameters 3x3 with 8 byte float values
+    R (np.ndarray): rotation matrix 3x3 with 8 byte float values
+    t (np.ndarray): translation vector 3x1 with 8 byte float values
+"""
 def read_projection_matrix_from_file(path):
     f = open(path, "rb")
     # Note: reshaping order has to match writing order
