@@ -5,12 +5,12 @@ import cv2
 if right-click: add coordinates of clicked point to list (params)
 if left-click: remove last point coordinates from list (params)
 
-event:  Type of mouse event that occurred
-x:      X coordinate of the mouse at the moment of the occured event
-y:      Y coordinate of the mouse at the moment of the occured event
-flags:  - (unused)
-params: Reference to list that contains the collected points
-
+Params:
+    event:  Type of mouse event that occurred
+    x:      X coordinate of the mouse at the moment of the occured event
+    y:      Y coordinate of the mouse at the moment of the occured event
+    flags:  - (unused)
+    params: Reference to list that contains the collected points
 """
 def collect_calibration_points(event, x, y, flags, points):
     # remove last item from list of points on leftclick
@@ -23,8 +23,11 @@ def collect_calibration_points(event, x, y, flags, points):
         points.append((x, y))
 
 """Return the cross product matrix of a column vector
+Params:
+    a (np.ndarray): the input column vector
 
-a (np.ndarray): the input column vector
+Returns:
+    (np.ndarray): the cross product matrix
 """
 def cross_product_matrix(a):
     return np.asarray([np.asarray([0, -a[2,0], a[1,0]]),
@@ -34,14 +37,15 @@ def cross_product_matrix(a):
 """Perform direct calibration method and estimate
 the projection matrix P, and factorize it to retrieve external and internal camera parameters
 
-M (np.ndarray): Array of 3D calibration points
-m (np.ndarray): Array of projected calibration points
+Params:
+    M (np.ndarray): Array of 3D calibration points
+    m (np.ndarray): Array of projected calibration points
 
 Returns: 
-P (np.ndarray): The estimated projection matrix
-K (np.ndarray): Matrix of internal parameters 
-R (np.ndarray): Matrix of external parameters describing the rotation
-t (np.ndarray): Vector of external parameters describing the translation
+    P (np.ndarray): The estimated projection matrix
+    K (np.ndarray): Matrix of internal parameters 
+    R (np.ndarray): Matrix of external parameters describing the rotation
+    t (np.ndarray): Vector of external parameters describing the translation
 """
 def calibration_direct_method(M, m):
     # fill A with the equations obtained from the pairs (mi, Mi)
