@@ -15,6 +15,13 @@ def collect_points(event, x, y, flags, points):
         print((x, y))
         points.append(np.asarray([x, y])[:,np.newaxis])
 
+def draw_epipolar_line(img, P1, P2, m):
+    e_prime = -P2[0:3,0:3].dot(np.linalg.inv(P1[0:3,0:3]).dot(P1[:,-1][:,np.newaxis])) + P2[:,-1][:,np.newaxis]
+    e_prime /= e_prime[-1]
+    p_inf = P2[0:3,0:3].dot(np.linalg.inv(P1[0:3,0:3]).dot(m))
+    p_inf /= p_inf[-1]
+    cv2.line(img, (int(e_prime[0]), int(e_prime[1])), (int(p_inf[0]), int(p_inf[1])), color=(255,0,0), thickness=1)
+
 def write_calibration_parameters_to_file(path, P, K, R, t):
     f = open(path, "wb")
     f.write(P.tobytes(order='C'))
@@ -121,6 +128,25 @@ def main():
         print(M)
     if (len(points_3D)==2):
         print("Euclidean distance: " + str(np.linalg.norm([points_3D[0][0:3],points_3D[1][0:3]])))
+
+    img1_resized = cv2.resize(img1, (int(img1.shape[1]/2), int(img1.shape[0]/2)))
+    img2_resized = cv2.resize(img2, (int(img2.shape[1]/2), int(img2.shape[0]/2)))
+
+    img_epipolar = np.concatenate((img1_resized,img2_resized), axis=1)
+
+    points_epipolar = []
+    cv2.imshow("epipolar line", img_epipolar)
+    cv2.setMouseCallback('epipolar line', collect_points, points_epipolar)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    draw_epipolar_line(img2_resized, P1, P2, np.concatenate((points_epipolar[0], np.ones((1,1))), axis=0))
+    img_epipolar = np.concatenate((img1_resized,img2_resized), axis=1)
+
+    
+    cv2.imshow("epipolar line", img_epipolar)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     # Animation along book edges
     points_animation = []
