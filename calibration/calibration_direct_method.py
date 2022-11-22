@@ -84,7 +84,7 @@ def main():
 
     # collect points indicated by user
     points = []
-    img = cv2.imread('image1.jpg')
+    img = cv2.imread('image_calibration.jpg')
     img_resized = cv2.resize(img, (int(img.shape[1]/4), int(img.shape[0]/4)))
     cv2.imshow("image", img_resized)
     cv2.setMouseCallback('image', collect_calibration_points, points)
