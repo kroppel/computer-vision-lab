@@ -11,7 +11,7 @@
 ## Solutions
 
 1. The direct method for camera calibration is implemented in calibration_direct_method.py, using a book shown in image1.jpg as the calibration object. With the projection matrix P estimated, arbitrary points from the 3D scene can be projected onto the image.  
-![demo](https://github.com/kroppel/computer-vision-lab/blob/main/images/calibration.PNG)
+![demo](https://github.com/kroppel/computer-vision-lab/blob/main/images/calibration_README.PNG)
 
 2. The image calibration procedure described in the example of the calibration toolbox is implemented in calibration_toolbox_opencv.py.  
 
