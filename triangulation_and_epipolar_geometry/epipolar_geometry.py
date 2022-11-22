@@ -48,14 +48,14 @@ def draw_epipolar_line(img, P1, P2, m):
 
 def main():
     # Read in images
-    img1 = cv2.imread('data/scene1.jpg')
-    img2 = cv2.imread('data/scene2.jpg')
+    img1 = cv2.imread('../images/scene1.jpg')
+    img2 = cv2.imread('../images/scene2.jpg')
 
     if PERFORM_CALIBRATION:
         helper.calibrate_book_scenes_example()
         
-    P1, K1, R1, t1 = helper.read_projection_matrix_from_file("data/params1")
-    P2, K2, R2, t2 = helper.read_projection_matrix_from_file("data/params2")
+    P1, K1, R1, t1 = helper.read_projection_matrix_from_file("../images/data/params1")
+    P2, K2, R2, t2 = helper.read_projection_matrix_from_file("../images/data/params2")
 
     # Attention: Calibration parameters are valid only for original images
     # -> points taken from the resized images have to be transformed back

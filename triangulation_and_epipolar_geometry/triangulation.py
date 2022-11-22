@@ -36,14 +36,14 @@ def get_coordinates_3D(m1, m2, P1, P2):
 
 def main():
     # Read in images
-    img1 = cv2.imread('data/scene1.jpg')
-    img2 = cv2.imread('data/scene2.jpg')
+    img1 = cv2.imread('../images/scene1.jpg')
+    img2 = cv2.imread('../images/scene2.jpg')
 
     if PERFORM_CALIBRATION:
         helper.calibrate_book_scenes_example()
 
-    P1, K1, R1, t1 = helper.read_projection_matrix_from_file("data/params1")
-    P2, K2, R2, t2 = helper.read_projection_matrix_from_file("data/params2")
+    P1, K1, R1, t1 = helper.read_projection_matrix_from_file("../images/data/params1")
+    P2, K2, R2, t2 = helper.read_projection_matrix_from_file("../images/data/params2")
 
     # collect 2 points from each image
     points_img1 = []

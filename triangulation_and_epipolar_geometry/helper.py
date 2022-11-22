@@ -51,8 +51,8 @@ def read_projection_matrix_from_file(path):
 """
 def calibrate_book_scenes_example():
     # Read in images
-    img1 = cv2.imread('data/scene1.jpg')
-    img2 = cv2.imread('data/scene2.jpg')
+    img1 = cv2.imread('../images/scene1.jpg')
+    img2 = cv2.imread('../images/scene2.jpg')
 
     # real-world 3D-calibration points
     M = np.asarray([np.asarray([0,0,0,1], dtype=float),
@@ -95,5 +95,5 @@ def calibrate_book_scenes_example():
     P2, K2, R2, t2 = calibration_direct_method.calibration_direct_method(M, m2)
 
     # store projection matrices in files
-    write_calibration_parameters_to_file("data/params1", P1, K1, R1, t1)
-    write_calibration_parameters_to_file("data/params2", P2, K2, R2, t2)
+    write_calibration_parameters_to_file("../images/data/params1", P1, K1, R1, t1)
+    write_calibration_parameters_to_file("../images/data/params2", P2, K2, R2, t2)

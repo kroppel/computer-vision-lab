@@ -68,7 +68,7 @@ def calibration_direct_method(M, m):
     # -> calculate t = inv(K) * q
     q = P[:,-1,np.newaxis]
     Q = P[:,:-1]
-    R_inv, K_inv = np.linalg.qr(Q, 'complete')
+    R_inv, K_inv = np.linalg.qr(np.linalg.inv(Q), 'complete')
 
     R = np.linalg.inv(R_inv)
     if np.linalg.det(R) < 0:
