@@ -7,7 +7,35 @@ helper = importlib.util.module_from_spec(spec)
 sys.modules["helper"] = helper
 spec.loader.exec_module(helper)
 
-def transformation_distortion(img_old, img_new, K):
+def transformation_distortion_v2(img_old, K):
+    img_new = np.zeros_like(img_old)
+    K1 = -0.4
+    coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
+
+    C = K[:,-1]
+    K = K / C[-1]
+    C = C / C[-1]
+
+
+    alpha_u = K[0,0]
+    axis_angle = np.arccos(K[0,1]/alpha_u)
+    alpha_v = K[1,1]*np.sin(axis_angle)
+
+    RD_squared = np.power((coordinates_x-C[0]) / (alpha_u), 2) \
+            + np.power((coordinates_y-C[1]) / (alpha_v), 2)
+
+    new_coordinates_x = np.clip((coordinates_x-C[0])*(1+K1*RD_squared)+C[0], 0, img_new.shape[1]-1).astype(int)
+    new_coordinates_y = np.clip((coordinates_y-C[1])*(1+K1*RD_squared)+C[1], 0, img_new.shape[0]-1).astype(int)
+
+    img_new[new_coordinates_y, new_coordinates_x] = img_old[1:,1:,:]
+    
+
+
+    return img_new
+
+def transformation_distortion(img_old, K):
+    img_new = np.zeros_like(img_old)
+
     K1 = -0.4
     K1 = 1.3
     #K1 = 0.7
@@ -36,6 +64,8 @@ def transformation_distortion(img_old, img_new, K):
             continue
 
         img_new[new_y, new_x] = img_old[v, u]
+    
+    return img_new
 
 def interpolate(img):
     img_new = np.copy(img)
@@ -56,8 +86,8 @@ img_undistorted = cv2.imread('../images/scene1.jpg')
 P, K, R, t = helper.read_projection_matrix_from_file("../images/data/params1")
 
 # perform distortion and interpolation
-img_distorted = np.zeros_like(img_undistorted)
-transformation_distortion(img_undistorted, img_distorted, K)
+#img_distorted = transformation_distortion(img_undistorted, K)
+img_distorted = transformation_distortion_v2(img_undistorted, K)
 img_distorted_interpolated = interpolate(img_distorted)
 
 # resize and show images
