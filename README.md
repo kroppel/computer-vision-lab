@@ -8,6 +8,7 @@ course 'Computer Vision', University of Verona, 2022.
 - Camera Calibration
 - Radial Distortion
 - Triangulation and Epipolar Geometry
+- Image Rectification
 
 ## Note
 
