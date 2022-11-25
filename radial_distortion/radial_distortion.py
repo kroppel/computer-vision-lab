@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import sys
 import importlib
-spec = importlib.util.spec_from_file_location("", "../triangulation_and_epipolar_geometry/helper.py")
+spec = importlib.util.spec_from_file_location("", "../shared/helper.py")
 helper = importlib.util.module_from_spec(spec)
 sys.modules["helper"] = helper
 spec.loader.exec_module(helper)
