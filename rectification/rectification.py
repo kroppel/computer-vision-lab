@@ -58,12 +58,18 @@ def perform_rect_inverse_transform(img, T):
 
     coordinates_transformed = np.einsum("hi,jki->jkh", np.linalg.inv(T), np.concatenate([coordinates_x[:,:,np.newaxis],coordinates_y[:,:,np.newaxis],coordinates_z[:,:,np.newaxis]], axis=2))
     coordinates_transformed[:,:,] /= coordinates_transformed[:,:,-1][:,:,np.newaxis]
+    coordinates_transformed = coordinates_transformed.astype(int)
+
+    coordinates_mask = np.logical_and(np.logical_and(coordinates_transformed[:,:,0] >= 0, coordinates_transformed[:,:,0] < img.shape[1]),
+                            np.logical_and(coordinates_transformed[:,:,1] >= 0, coordinates_transformed[:,:,1] < img.shape[0]))[:,:,np.newaxis]
+
     coordinates_transformed[:,:,0] = np.clip(coordinates_transformed[:,:,0], 0, img.shape[1]-1)
     coordinates_transformed[:,:,1] = np.clip(coordinates_transformed[:,:,1], 0, img.shape[0]-1)
-    coordinates_transformed = coordinates_transformed.astype(int)
 
     img_rect = np.zeros_like(img)
     img_rect = img[coordinates_transformed[:,:,1],coordinates_transformed[:,:,0]]
+    img_rect = img_rect * coordinates_mask
+
 
     return img_rect
 

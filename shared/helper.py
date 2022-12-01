@@ -97,3 +97,54 @@ def calibrate_book_scenes_example():
     # store projection matrices in files
     write_calibration_parameters_to_file("../images/data/params1", P1, K1, R1, t1)
     write_calibration_parameters_to_file("../images/data/params2", P2, K2, R2, t2)
+
+"""Perform the direct calibration method for the two new example image scenes found in the data directory
+"""
+def calibrate_new_book_scenes_example():
+    # Read in images
+    img1 = cv2.imread('../images/new_scene1.jpg')
+    img2 = cv2.imread('../images/new_scene2.jpg')
+
+    # real-world 3D-calibration points
+    M = np.asarray([np.asarray([0,0,0,1], dtype=float),
+                    np.asarray([0,0,4,1], dtype=float),
+                    np.asarray([0,23,4,1], dtype=float),
+                    np.asarray([14.5,23,4,1], dtype=float),
+                    np.asarray([14.5,0,4,1], dtype=float),
+                    np.asarray([14.5,0,0,1], dtype=float)])
+
+    # collect calibration points for both images from user
+    points1 = []
+    cv2.imshow("Calibration Scene 1", img1)
+    cv2.setMouseCallback('Calibration Scene 1', calibration_direct_method.collect_calibration_points, points1)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    # 2D projections
+    m1 = np.asarray([np.asarray([points1[0][0], points1[0][1], 1]),
+                    np.asarray([points1[1][0], points1[1][1], 1]),
+                    np.asarray([points1[2][0], points1[2][1], 1]),
+                    np.asarray([points1[3][0], points1[3][1], 1]),
+                    np.asarray([points1[4][0], points1[4][1], 1]),
+                    np.asarray([points1[5][0], points1[5][1], 1])])
+
+    points2 = []
+    cv2.imshow("Calibration Scene 2", img2)
+    cv2.setMouseCallback('Calibration Scene 2', calibration_direct_method.collect_calibration_points, points2)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    # 2D projections
+    m2 = np.asarray([np.asarray([points2[0][0], points2[0][1], 1]),
+                    np.asarray([points2[1][0], points2[1][1], 1]),
+                    np.asarray([points2[2][0], points2[2][1], 1]),
+                    np.asarray([points2[3][0], points2[3][1], 1]),
+                    np.asarray([points2[4][0], points2[4][1], 1]),
+                    np.asarray([points2[5][0], points2[5][1], 1])])
+
+    P1, K1, R1, t1 = calibration_direct_method.calibration_direct_method(M, m1)
+    P2, K2, R2, t2 = calibration_direct_method.calibration_direct_method(M, m2)
+
+    # store projection matrices in files
+    write_calibration_parameters_to_file("../images/data/new_params1", P1, K1, R1, t1)
+    write_calibration_parameters_to_file("../images/data/new_params2", P2, K2, R2, t2)
