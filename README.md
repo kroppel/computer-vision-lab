@@ -12,4 +12,4 @@ course 'Computer Vision', University of Verona, 2022.
 
 ## Note
 
-Scripts should be run from inside each topics directory, as they contain relative paths to images and other data data. 
+Scripts should be run from inside each topics directory, as they contain relative paths to images and other data. 

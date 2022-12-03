@@ -28,7 +28,7 @@ def collect_calibration_points(event, x, y, flags, points):
         print((x, y))
         points.append((x, y))
 
-def transformation_distortion(img_old, K, distortion_coefficient= -0.4):
+def transformation_distortion_direct(img_old, K, distortion_coefficient= -0.4):
     img_new = np.zeros_like(img_old)
     coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
 
@@ -49,20 +49,34 @@ def transformation_distortion(img_old, K, distortion_coefficient= -0.4):
 
     img_new[new_coordinates_y, new_coordinates_x] = img_old[1:,1:,:]
     
-
-
     return img_new
 
-def interpolate(img):
-    img_new = np.copy(img)
+def transformation_distortion_inverse(img_old, K, distortion_coefficient= -0.4):
+    img_new = np.zeros_like(img_old)
+    coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
 
-    for i in np.arange(1, img.shape[0]-1):
-        mask = np.logical_and(np.logical_and(img[i,:,0]==0, img[i,:,1]==0), img[i,:,2]==0)
-        img_new[i,mask] = img_new[i,mask]+((img[i-1,mask] + img[i+1,mask])/4).astype(np.uint8)
-    
-    for i in np.arange(1, img.shape[1]-1):
-        mask = np.logical_and(np.logical_and(img[:,i,0]==0, img[:,i,1]==0), img[:,i,2]==0)
-        img_new[mask,i] = img_new[mask,i]+((img[mask,i-1] + img[mask,i+1])/4).astype(np.uint8)
+    C = K[:,-1]
+    K = K / C[-1]
+    C = C / C[-1]
+
+
+    alpha_u = K[0,0]
+    axis_angle = np.arccos(K[0,1]/alpha_u)
+    alpha_v = K[1,1]*np.sin(axis_angle)
+
+    RD_squared = np.power((coordinates_x-C[0]) / (alpha_u), 2) \
+            + np.power((coordinates_y-C[1]) / (alpha_v), 2)
+
+    old_coordinates_x = (coordinates_x-C[0])/(1+distortion_coefficient*RD_squared)+C[0]
+    old_coordinates_y = (coordinates_y-C[1])/(1+distortion_coefficient*RD_squared)+C[1]
+
+    coordinate_mask = np.logical_and(np.logical_and(old_coordinates_x < img_new.shape[1], old_coordinates_x >= 0), \
+                np.logical_and(old_coordinates_y < img_new.shape[0], old_coordinates_y >= 0))
+
+    old_coordinates_x = np.clip(old_coordinates_x, 0, img_new.shape[1]-1).astype(int)
+    old_coordinates_y = np.clip(old_coordinates_y, 0, img_new.shape[0]-1).astype(int)
+
+    img_new[1:,1:,:] += img_old[old_coordinates_y, old_coordinates_x, :]*coordinate_mask[:,:,np.newaxis]
 
     return img_new
 
@@ -95,23 +109,23 @@ def estimate_distortion_coefficient(img, K, P):
     return ((m[0]-C[0])*RD_squared*(points[0][0]-m[0])/(m[0]-C[0])*RD_squared*(m[0]-C[0])*RD_squared)
     
 
-
-
 img_undistorted = cv2.imread('../images/scene1.jpg')
 
 P, K, R, t = helper.read_projection_matrix_from_file("../images/data/params1")
 
-# perform distortion and interpolation
-img_distorted = transformation_distortion(img_undistorted, K)
-img_distorted_interpolated = interpolate(img_distorted)
+# perform distortion transformation
+#img_distorted = transformation_distortion_direct(img_undistorted, K, -0.4)
+#img_distorted = transformation_distortion_direct(img_undistorted, K, 0.7)
+img_distorted = transformation_distortion_inverse(img_undistorted, K, 0.7)
 
 # resize and show images
 img_undistorted_resize = cv2.resize(img_undistorted, (int(img_undistorted.shape[1]/2), int(img_undistorted.shape[0]/2)))
-img_distorted_interpolated_resize = cv2.resize(img_distorted_interpolated, (int(img_distorted_interpolated.shape[1]/2), int(img_distorted_interpolated.shape[0]/2)))
-img_combined = np.concatenate([img_undistorted_resize, img_distorted_interpolated_resize], axis=1)
+img_distorted_resize = cv2.resize(img_distorted, (int(img_distorted.shape[1]/2), int(img_distorted.shape[0]/2)))
+img_combined = np.concatenate([img_undistorted_resize, img_distorted_resize], axis=1)
 
-print("K estimation: " + str(estimate_distortion_coefficient(img_distorted, K, P)))
+# Not a correct estimation as the projection matrix is not the one of the distorted image!
+# print("K estimation: " + str(estimate_distortion_coefficient(img_distorted, K, P)))
 
-cv2.imshow("images_distorted", img_combined)
+cv2.imshow("image_original_and_distorted", img_combined)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
