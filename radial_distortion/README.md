@@ -13,8 +13,8 @@ while for parameter values K1 greater than 0 it creates barrel distortion.
 
 ![image_pincushion_distortion](../images/radial_distortion_pincushion1_README.PNG)
 
-## Example 3 Pincushion Distortion, K1 = 0.7 (inverse transfor)
+## Example 3 Pincushion Distortion, K1 = 0.7 (inverse transform)
 
-![image_pincushion_distortion](../images/radial_distortion_pincushion1_README.PNG)
+![image_pincushion_distortion](../images/radial_distortion_pincushion2_README.PNG)
 
 The inverse transform results in an image without missing pixels (pixels that were not assigned a value after the transformation). There is no need for further interpolation.
