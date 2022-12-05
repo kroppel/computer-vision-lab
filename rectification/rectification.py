@@ -28,6 +28,8 @@ def get_rectified_projection_matrices(parameters_list_left, parameters_list_righ
     R_rect[0,:] = (C2_3D-C1_3D)/(np.linalg.norm(C2_3D-C1_3D))
     R_rect[1,:] = np.cross(R1[2,:], R_rect[0,:])
     R_rect[2,:] = -np.cross(R_rect[0,:], R_rect[1,:])
+    if np.linalg.det(R_rect) < 0:
+        R_rect = -1*R_rect
     # 3. Calculate the new translation vectors
     t1_rect = -R_rect.dot(C1_3D)
     t2_rect = -R_rect.dot(C2_3D)
