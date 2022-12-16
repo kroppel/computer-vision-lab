@@ -46,27 +46,6 @@ def main():
 
     imgL = cv2.cvtColor(img1_rect,cv2.COLOR_BGR2GRAY)
     imgR = cv2.cvtColor(img2_rect,cv2.COLOR_BGR2GRAY)
-
-    # collect 2 points from each image
-    points_img1 = []
-    cv2.imshow("image", imgL)
-    cv2.setMouseCallback('image', triangulation.collect_points, points_img1)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    points_img2 = []
-    cv2.imshow("image", imgR)
-    cv2.setMouseCallback('image', triangulation.collect_points, points_img2)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    points_3D = []
-    # reconstruct 3D coordinates of every sample point
-    for i in np.arange(len(points_img1)):
-        M = triangulation.get_coordinates_3D(points_img1[i], points_img2[i], P1_rect, P2_rect)
-        points_3D.append(M)
-        print(M)
-    if (len(points_3D)==2):
-        print("Euclidean distance: " + str(np.sqrt(np.sum(np.power(points_3D[0][0:3]-points_3D[1][0:3], 2)))))
     
     # Initiate ORB detector
     orb = cv2.ORB_create()
@@ -82,42 +61,53 @@ def main():
     # Sort them in the order of their distance.
     matches = sorted(matches, key = lambda x:x.distance)
 
+    # only use keypoints that represent points of the book in the scene
     matches_filtered = []
     for match in matches:
         if np.abs(kp1[match.queryIdx].pt[1]-kp2[match.trainIdx].pt[1]) < 50 and \
             kp1[match.queryIdx].pt[1] > 326 and kp1[match.queryIdx].pt[1] < 550 and \
             kp1[match.queryIdx].pt[0] > 372 and kp1[match.queryIdx].pt[0] < 746 and \
             kp2[match.trainIdx].pt[1] > 326 and kp2[match.trainIdx].pt[1] < 550: \
-            
             matches_filtered.append(match)
+        print((kp1[match.queryIdx].pt[0],kp2[match.trainIdx].pt[0]))
+        print(kp1[match.queryIdx].pt[1]-kp2[match.trainIdx].pt[1])
+
+
 
     print(len(matches))
     print(len(matches_filtered))
 
-
+    matches_filtered = matches_filtered
     img3 = cv2.drawMatches(imgL,kp1,imgR,kp2,matches_filtered,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     plt.imshow(img3),plt.show()
 
     points_3D = []
     for match in matches_filtered:
         points_3D.append(triangulation.get_coordinates_3D(np.asarray([kp1[match.queryIdx].pt[0], kp1[match.queryIdx].pt[1]])[:,np.newaxis], np.asarray([kp2[match.trainIdx].pt[0], kp2[match.trainIdx].pt[1]])[:,np.newaxis], P1_rect, P2_rect))
-        print(np.asarray([kp1[match.queryIdx].pt[0], kp1[match.queryIdx].pt[1]]))
-        print(points_3D[-1])
+        #print(np.asarray([kp1[match.queryIdx].pt[0], kp1[match.queryIdx].pt[1]]))
+        #print(points_3D[-1])
 
     points_3D_array = np.asarray(points_3D)
     points_3D_array = points_3D_array[np.all(np.abs(points_3D_array[:,0:3,:])<100, axis=1)[:,0]]
 
+    # using the information that the object we model is quader, we can calculate min/max x, y and z values to create a 'bounding quader' around the triangulated points
+    min_max_coordinates = np.concatenate([np.min(points_3D_array.reshape((-1,4)), axis=0)[np.newaxis,:], np.max(points_3D_array.reshape((-1,4)), axis=0)[np.newaxis,:]], axis=0)
+
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-    ax.scatter(points_3D_array[:,0,:], points_3D_array[:,1,:], points_3D_array[:,2,:])
+    #ax.scatter(points_3D_array[:,0,:], points_3D_array[:,1,:], points_3D_array[:,2,:])
     ax.set_xlabel('X Axis')
     ax.set_ylabel('Y Axis')
     ax.set_zlabel('Z Axis')
-    samples = np.arange(-100, 100, 2)
+    samples = np.arange(-50, 50, 1)
     ax.plot(xs=samples, ys=np.zeros_like(samples), zs=0)
     ax.plot(xs=np.zeros_like(samples), ys=samples, zs=0)
     ax.plot(xs=np.zeros_like(samples), ys=np.zeros_like(samples), zs=samples)
-
+    x_mesh, y_mesh, z_mesh = np.meshgrid(min_max_coordinates[:,0], min_max_coordinates[:,1], min_max_coordinates[:,2])
+    for x in np.arange(2):
+        for y in np.arange(2):
+            for z in np.arange(2):
+                ax.scatter(x_mesh[x,y,z], y_mesh[x,y,z], z_mesh[x,y,z])
 
     plt.show()
 
