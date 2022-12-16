@@ -18,7 +18,7 @@ The direct transform shows pixels that did not get assigned a pixel value. Their
 
 ![rectification_inverse_transform](../images/rectification_inverse_transform_README.PNG)
 
-The inverse transformation has the characteristic that every point in the rectified image got a pixel value assigned (though if the transformed coordinate of a pixel lies outside of the original images boundary, there is no way to select a meaningfull pixel value; I solved this problem by simply clipping the transformed coordinates to the image dimensions).
+The inverse transformation has the characteristic that every point in the rectified image got a pixel value assigned (though if the transformed coordinate of a pixel lies outside of the original images boundary, there is no way to select a meaningfull pixel value).
 
 ### Epipolar Line on Rectified Images
 
