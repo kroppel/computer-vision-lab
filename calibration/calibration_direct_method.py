@@ -23,6 +23,7 @@ def collect_calibration_points(event, x, y, flags, points):
         points.append((x, y))
 
 """Return the cross product matrix of a column vector
+
 Params:
     a (np.ndarray): the input column vector
 
