@@ -8,7 +8,6 @@ helper = importlib.util.module_from_spec(spec)
 sys.modules["helper"] = helper
 spec.loader.exec_module(helper)
 
-
 """Estimate the homography that describes the relation between a planar scene 
 shown in two images given a set of corresponding points m1, m2
 

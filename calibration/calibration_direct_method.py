@@ -120,7 +120,6 @@ def main():
     print(R)
     print(t)
 
-
     ####### DEMO #######
 
     # Project calibration points and see if it works
