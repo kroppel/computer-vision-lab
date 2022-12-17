@@ -106,6 +106,9 @@ def main():
     rect_bounds = helper.get_marked_rectangle(np.copy(imgL))
     matches, kp1, kp2 = helper.perform_orb_keypoint_matching(imgL, imgR)
     matches_filtered = helper.filter_keypoint_matches(matches, kp1, rect_bounds, 15)
+    if len(matches_filtered) < 4:
+        print("Only found {} keypoint matches (Not enough!)".format(len(matches_filtered)))
+        return
 
     img3 = cv2.drawMatches(imgL,kp1,imgR,kp2,matches_filtered[0:np.min((number_keypoints,len(matches_filtered)))],None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
     plt.imshow(img3)
