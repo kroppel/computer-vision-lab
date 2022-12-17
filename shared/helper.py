@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import sys
 import importlib
-import matplotlib.pyplot as plt
 
 spec = importlib.util.spec_from_file_location("", "../calibration/calibration_direct_method.py")
 calibration_direct_method = importlib.util.module_from_spec(spec)
