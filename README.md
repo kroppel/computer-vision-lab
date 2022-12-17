@@ -9,6 +9,7 @@ course 'Computer Vision', University of Verona, 2022.
 - Radial Distortion
 - Triangulation and Epipolar Geometry
 - Image Rectification
+- Image Mosaicing
 
 ## Note
 
