@@ -95,8 +95,8 @@ def main():
         data2 = tmp
     
     # run and plot data
-    samples1 = np.arange(0, data1.shape[0],4)
-    samples2 = np.arange(0, data2.shape[0],4)
+    samples1 = np.arange(0, data1.shape[0],2)
+    samples2 = np.arange(0, data2.shape[0],2)
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
