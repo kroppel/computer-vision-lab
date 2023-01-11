@@ -2,10 +2,6 @@ import numpy as np
 import importlib.util
 import sys
 import cv2
-spec = importlib.util.spec_from_file_location("", "../calibration/calibration_direct_method.py")
-calibration_direct_method = importlib.util.module_from_spec(spec)
-sys.modules["calibration_direct_method"] = calibration_direct_method
-spec.loader.exec_module(calibration_direct_method)
 spec = importlib.util.spec_from_file_location("", "../shared/helper.py")
 helper = importlib.util.module_from_spec(spec)
 sys.modules["helper"] = helper

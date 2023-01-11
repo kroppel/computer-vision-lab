@@ -13,7 +13,19 @@ def read_cnn_data(path):
         
     return np.array(data).astype(int)
 
-"""
+"""Match points of two lists pairwise non-exclusively based on distance.
+
+Params:
+    data1 (list):   first input list of points
+    data2 (list):   second input list of points
+
+Returns:
+    matches (np.ndarray):   Array of indices matching points from the smaller of the two input lists
+                            to points in the larger input list
+
+Note:
+    If data1 has more elements than data2, the function calls itself recursively and switches the
+    inputs to ensure that data1 always has less or an equal amount of elements.
 """
 def pair_closest_points(data1, data2):
     if data1.shape[0] <= data2.shape[0]:
@@ -42,6 +54,8 @@ def apply_rigid_transform(data, s, R, T):
 
     return dataT
 
+"""Perform iterative closest point f
+"""
 def iterative_closest_point(data1, data2, max_iter = 20, thresh = None):
     s = 1
     R = np.zeros((3,3))
@@ -106,6 +120,7 @@ def main():
     ax.scatter(data2[samples2,0], data2[samples2,1], data2[samples2,2], "b")
     plt.show()
     
+    # perform 4 x 50 iterations of icp and plot each intermediate result
     for i in np.arange(4):
         data2 = iterative_closest_point(data1, data2, 50, 0.01)
         fig = plt.figure()

@@ -28,6 +28,16 @@ def collect_calibration_points(event, x, y, flags, points):
         print((x, y))
         points.append((x, y))
 
+"""Applies radial distortion using a single parameter distortion model via direct transformation
+
+Params:
+    img_old (np.ndarray):           The input image.
+    K (np.ndarray):                 The matrix of internal parameters
+    distortion_coefficient (float): Coefficient that controls the amount of distortion introduced
+
+Returns:
+    img_new (np.ndarray):   The distorted image
+"""
 def transformation_distortion_direct(img_old, K, distortion_coefficient= -0.4):
     img_new = np.zeros_like(img_old)
     coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
@@ -51,6 +61,16 @@ def transformation_distortion_direct(img_old, K, distortion_coefficient= -0.4):
     
     return img_new
 
+"""Applies radial distortion using a single parameter distortion model via inverse transformation
+
+Params:
+    img_old (np.ndarray):           The input image.
+    K (np.ndarray):                 The matrix of internal parameters
+    distortion_coefficient (float): Coefficient that controls the amount of distortion introduced
+
+Returns:
+    img_new (np.ndarray):   The distorted image
+"""
 def transformation_distortion_inverse(img_old, K, distortion_coefficient= -0.4):
     img_new = np.zeros_like(img_old)
     coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
@@ -93,8 +113,8 @@ def estimate_distortion_coefficient(img, K, P):
     m /= m[-1]
 
     C = K[:,-1]
-    K = K / C[-1]
-    C = C / C[-1]
+    #K = K / C[-1]
+    #C = C / C[-1]
 
 
     alpha_u = K[0,0]
@@ -106,6 +126,7 @@ def estimate_distortion_coefficient(img, K, P):
             + np.power((m[1]-C[1]) / (alpha_v), 2)
 
 
+    #return ((m[1]-C[1])*RD_squared*(points[0][1]-m[1])/(m[1]-C[1])*RD_squared*(m[1]-C[1])*RD_squared)
     return ((m[0]-C[0])*RD_squared*(points[0][0]-m[0])/(m[0]-C[0])*RD_squared*(m[0]-C[0])*RD_squared)
     
 
@@ -124,7 +145,7 @@ img_distorted_resize = cv2.resize(img_distorted, (int(img_distorted.shape[1]/2),
 img_combined = np.concatenate([img_undistorted_resize, img_distorted_resize], axis=1)
 
 # Not a correct estimation as the projection matrix is not the one of the distorted image!
-# print("K estimation: " + str(estimate_distortion_coefficient(img_distorted, K, P)))
+print("K estimation: " + str(estimate_distortion_coefficient(img_distorted, K, P)))
 
 cv2.imshow("image_original_and_distorted", img_combined)
 cv2.waitKey(0)
