@@ -120,24 +120,12 @@ def main():
         # project points AND! scale them to lie inside the image plane (3rd coordinate=1)
         mi = P1.dot(Mi[:,np.newaxis])
         mi = mi/mi[2,0]
-
         cv2.circle(cpy_img_resized, (int(mi[0,0]), int(mi[1,0])), 2, color=(0,255,0), thickness=-1)
+        cv2.circle(cpy_img_resized, (int(m1[i,0]), int(m1[i,1])), 2, color=(0,0,255), thickness=-1)
+
     cv2.imshow("image", cpy_img_resized)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-    """print("------Rt------")
-    print(R1)
-    print(t1)
-    print("-------------")
-    print(R)
-    print(t)
-    print("------P------")
-    print(K1.dot(R1))
-    print(K1.dot(t1))
-    print("-------------")
-    print(K1.dot(R))
-    print(K1.dot(t))"""
 
     # 2D projections for second scene
     m2 = np.asarray([np.asarray([340, 479, 1]),
@@ -159,8 +147,9 @@ def main():
         # project points AND! scale them to lie inside the image plane (3rd coordinate=1)
         mi = P2.dot(Mi[:,np.newaxis])
         mi = mi/mi[2,0]
-
         cv2.circle(cpy_img_resized, (int(mi[0,0]), int(mi[1,0])), 2, color=(0,255,0), thickness=-1)
+        cv2.circle(cpy_img_resized, (int(m2[i,0]), int(m2[i,1])), 2, color=(0,0,255), thickness=-1)
+
     cv2.imshow("image", cpy_img_resized)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -168,6 +157,15 @@ def main():
     print("vector view 1 to view 2: ")
     print(t2-t1)
 
+    print("------Rt1------")
+    print(R1)
+    print(t1)
+    print("------Rt2----")
+    print(R2)
+    print(t2)
+
+    print("optical center difference vector:")
+    
 
 
 
