@@ -63,6 +63,11 @@ def calibration_direct_method(M, m):
     P_vec = VH.transpose()[:,-1][:,np.newaxis]
     P = np.reshape(P_vec, (3,4), 'F')
 
+    # normalization
+    P = P/np.linalg.norm(P[2,0:3])
+    """if np.linalg.det(P[0:3,0:3]) < 0:
+        P = P * -1"""
+
     # P = [Q,q] = [KR, Kt]
     # -> factorize inv(Q) into inv(K*R) = inv(R) * inv(K)
     # -> invert inv(R) to get R
