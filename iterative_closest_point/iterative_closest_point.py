@@ -80,7 +80,7 @@ def iterative_closest_point(data1, data2, max_iter = 20, thresh = None):
         data2_centered = data2[matches,:]-data2_mean
         s = np.sum(np.linalg.norm(data1_centered, axis=1)/np.linalg.norm(data2_centered, axis=1))/data1_centered.shape[0]
 
-        U,S,VH = np.linalg.svd(data2_centered.transpose().dot(s*data1_centered))
+        U,S,VH = np.linalg.svd(s*data2_centered.transpose().dot(data1_centered))
         det_UT_V = np.linalg.det(VH.transpose())*np.linalg.det(U.transpose())
         D = np.zeros((3,3))
         D[0,0] = 1

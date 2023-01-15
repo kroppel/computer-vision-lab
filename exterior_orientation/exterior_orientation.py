@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 import importlib
 import sys
 spec = importlib.util.spec_from_file_location("", "../shared/helper.py")
@@ -32,6 +31,7 @@ def collect_points(event, x, y, flags, points):
         points.append((x, y))
 
 def estimate_exterior_orientation(m, M, K):
+    print(K)
     UM,SM,VHM = np.linalg.svd(M.transpose())
     VM = VHM.transpose()
     rank = M.shape[1]
@@ -50,31 +50,31 @@ def estimate_exterior_orientation(m, M, K):
     for i in np.arange(m.shape[0]):
         D[i*3:(i+1)*3,i]=m[i,:]
     for i in np.arange(M.shape[0]):
-        A[i*(VM.shape[1]-rank)*3:(i+1)*(VM.shape[1]-rank)*3,:]=np.kron(VRM.transpose(),np.linalg.inv(K)).dot(D)
+        A[i*(VM.shape[1]-rank)*3:(i+1)*(VM.shape[1]-rank)*3,:] = np.kron(VRM.transpose(),np.linalg.inv(K)).dot(D)
     UA, SA, VHA = np.linalg.svd(A)
     #scale_factors = VHA.transpose()[:,np.argmin(SA)]
     scale_factors = VHA.transpose()[:,-1]
 
-    #m = scale_factors[:,np.newaxis]*m
-    p = scale_factors[:,np.newaxis]*np.linalg.inv(K).dot(m.transpose()).transpose()
+    p = scale_factors[:,np.newaxis]*(np.linalg.inv(K).dot(m.transpose()).transpose())
     M = M[:,:-1]
     ### estimate external orientation
-    # compute centroids
-    
+
+    # compute centroids and center data
     p_mean = np.sum(p, axis=0)/p.shape[0]
     M_mean = np.sum(M, axis=0)/M.shape[0]
 
-    m_centered = p - p_mean[np.newaxis,:]
+    p_centered = p - p_mean[np.newaxis,:]
     M_centered = M - M_mean[np.newaxis,:]
     
-    #### s not applied!
-    s = np.linalg.norm(m_centered)/np.linalg.norm(M_centered)
+    #### sign of s??
+    s = np.sum(np.linalg.norm(p_centered, axis=1) / np.linalg.norm(M_centered, axis=1))/p_centered.shape[0]
+    print("S: "+str(s))
     
-    U, S, VH = np.linalg.svd(M_centered.transpose().dot(m_centered))
+    U, S, VH = np.linalg.svd((s*M_centered).transpose().dot(p_centered))
     S_new = np.identity(3)
     S_new[2,2] = np.linalg.det(VH.transpose().dot(U.transpose()))
     R = VH.transpose().dot(S_new).dot(U.transpose())
-    t = p_mean[:,np.newaxis]/s - R.dot(M_mean[:,np.newaxis])
+    t = (p_mean[:,np.newaxis]/s - R.dot(M_mean[:,np.newaxis]))
 
     return R, t
 
@@ -87,8 +87,8 @@ def main():
         helper.calibrate_new_book_scenes_example()
     
     # load parameters to obtain internal camera parameters
-    _, K1, _, _ = helper.read_projection_matrix_from_file("../images/data/new_params1")
-    _, K2, _, _ = helper.read_projection_matrix_from_file("../images/data/new_params2")
+    _, K1, R1_, t1_ = helper.read_projection_matrix_from_file("../images/data/new_params1")
+    _, K2, R2_, t2_ = helper.read_projection_matrix_from_file("../images/data/new_params2")
 
     # real-world 3D-calibration points
     M = np.asarray([np.asarray([0,0,0,1], dtype=float),
@@ -155,18 +155,20 @@ def main():
     cv2.destroyAllWindows()
 
     print("vector view 1 to view 2: ")
-    print(t2-t1)
+    print((R2.dot(np.linalg.inv(R1).dot(-t1))+t2))
 
     print("------Rt1------")
     print(R1)
     print(t1)
+    print("------Rt1_Calib------")
+    print(R1_)
+    print(t1_)
     print("------Rt2----")
     print(R2)
     print(t2)
-
-    print("optical center difference vector:")
-    
-
+    print("------Rt2_Calib----")
+    print(R2_)
+    print(t2_)
 
 
 

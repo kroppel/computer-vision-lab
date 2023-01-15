@@ -35,7 +35,7 @@ def cross_product_matrix(a):
                     np.asarray([a[2,0], 0, -a[0,0]]),
                     np.asarray([-a[1,0], a[0,0], 0])])
                     
-"""Perform direct calibration method and estimate
+"""Perform direct calibration method (second version in script) and estimate
 the projection matrix P, and factorize it to retrieve external and internal camera parameters
 
 Params:
@@ -52,12 +52,13 @@ def calibration_direct_method(M, m):
     # fill A with the equations obtained from the pairs (mi, Mi)
     A = np.zeros((12, 12))
     for i in np.arange(len(m)):
-        mi = m[i, np.newaxis].transpose()
-        Mi = M[i, np.newaxis].transpose()
-        A[2*i:2*i+2,:] = np.kron(Mi.transpose(), cross_product_matrix(mi))[0:2,:]
+        mi = m[i,:][:,np.newaxis]
+        Mi = M[i,:][:,np.newaxis]
+        A[2*i:2*i+2,:] = np.kron(Mi.transpose(), cross_product_matrix(mi)[0:2,:])
 
     # Singular Value Decomposition and retrieval of vec(P)
     _, _, VH = np.linalg.svd(A)
+
     # As VH is the transpose of V, we transpose it again and retrieve the last column.
     # Then we reshape the vector to matrix layout 3x4 in Fortran order (column-major filling)
     P_vec = VH.transpose()[:,-1][:,np.newaxis]
@@ -65,8 +66,9 @@ def calibration_direct_method(M, m):
 
     # normalization
     P = P/np.linalg.norm(P[2,0:3])
-    """if np.linalg.det(P[0:3,0:3]) < 0:
-        P = P * -1"""
+    if np.linalg.det(P[0:3,0:3]) < 0:
+        print("Det Q:" + str(np.linalg.det(P[0:3,0:3])))
+        P = P * -1
 
     # P = [Q,q] = [KR, Kt]
     # -> factorize inv(Q) into inv(K*R) = inv(R) * inv(K)
@@ -74,20 +76,92 @@ def calibration_direct_method(M, m):
     # -> calculate t = inv(K) * q
     q = P[:,-1,np.newaxis]
     Q = P[:,:-1]
-    R_inv, K_inv = np.linalg.qr(np.linalg.inv(Q), 'complete')
+
+    #R_inv, K_inv = np.linalg.qr(np.linalg.inv(Q))
+    K_inv = np.linalg.qr(np.linalg.inv(Q), "r")
+    # ensure that element (2,2) of K is positive!
+    if K_inv[2,2] < 0:
+        K_inv[2,2] *= -1
+    
+
+    K = np.linalg.inv(K_inv)
+    
+    R_inv = np.linalg.inv(Q).dot(K)
 
     R = np.linalg.inv(R_inv)
     if np.linalg.det(R) < 0:
         R *= -1
-    K =np.linalg.inv(K_inv)
+        print("Determinant of R: " + str(np.linalg.det(R)))
+
     t = K_inv.dot(q)
         
-    print("Determinant of R: " + str(np.linalg.det(R)))
 
     return P, K, R, t 
 
-def main():
+"""Perform direct calibration method (first version in script) and estimate
+the projection matrix P, and factorize it to retrieve external and internal camera parameters
 
+Params:
+    M (np.ndarray): Array of 3D calibration points
+    m (np.ndarray): Array of projected calibration points
+
+Returns: 
+    P (np.ndarray): The estimated projection matrix
+    K (np.ndarray): Matrix of internal parameters 
+    R (np.ndarray): Matrix of external parameters describing the rotation
+    t (np.ndarray): Vector of external parameters describing the translation
+"""
+def calibration_direct_method_v2(M, m):
+    # fill A with the equations obtained from the pairs (mi, Mi)
+    A = np.zeros((12, 12))
+    for i in np.arange(len(m)):
+        mi = m[i,:][:,np.newaxis]
+        Mi = M[i,:][:,np.newaxis]
+        A[2*i,:] = np.kron(cross_product_matrix(mi)[0,:], Mi.transpose())
+        A[2*i+1,:] = np.kron(cross_product_matrix(mi)[1,:], Mi.transpose())
+
+
+    # Singular Value Decomposition and retrieval of vec(P)
+    _, _, VH = np.linalg.svd(A)
+
+    # As VH is the transpose of V, we transpose it again and retrieve the last column.
+    # Then we reshape the vector to matrix layout 3x4 in C order (row-major filling)
+    P_vec = VH.transpose()[:,-1][:,np.newaxis]
+    P = np.reshape(P_vec, (3,4), 'C')
+
+    # normalization
+    P = P/np.linalg.norm(P[2,0:3])
+    if np.linalg.det(P[0:3,0:3]) < 0:
+        print("Det Q:" + str(np.linalg.det(P[0:3,0:3])))
+        P = P * -1
+
+    # P = [Q,q] = [KR, Kt]
+    # -> factorize inv(Q) into inv(K*R) = inv(R) * inv(K)
+    # -> invert inv(R) to get R
+    # -> calculate t = inv(K) * q
+    q = P[:,-1,np.newaxis]
+    Q = P[:,:-1]
+    #R_inv, K_inv = np.linalg.qr(np.linalg.inv(Q))
+    K_inv = np.linalg.qr(np.linalg.inv(Q), "r")
+
+    # ensure that element (2,2) of K is positive!
+    if K_inv[2,2] < 0:
+        K_inv *= -1
+
+    K = np.linalg.inv(K_inv)
+    
+    R_inv = np.linalg.inv(Q).dot(K)
+
+    R = np.linalg.inv(R_inv)
+    if np.linalg.det(R) < 0:
+        R *= -1
+    print("Determinant of R: " + str(np.linalg.det(R)))
+
+    t = K_inv.dot(q)
+        
+    return P, K, R, t 
+
+def main():
     # collect points indicated by user
     points = []
     img = cv2.imread('../images/image_calibration.jpg')
@@ -113,7 +187,7 @@ def main():
                     np.asarray([points[4][0], points[4][1], 1]),
                     np.asarray([points[5][0], points[5][1], 1])])
 
-    P, K, R, t = calibration_direct_method(M, m)
+    P, K, R, t = calibration_direct_method_v2(M, m)
 
     print("Projection Matrix P: ")
     print(P)
