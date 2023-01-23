@@ -10,25 +10,6 @@ spec.loader.exec_module(helper)
 
 PERFORM_CALIBRATION = False
 
-def estimate_essential_matrix(y, y_prime, K1, K2):
-    Y = np.zeros((9,8))
-    for i in np.arange(len(y)):
-        Y[:,i] = y_prime[i][:,np.newaxis].dot(y[i][:,np.newaxis].transpose()).flatten(order='F')
-    
-    _, _, VH = np.linalg.svd(Y.transpose())
-    E_vec = VH.transpose()[:,-1][:,np.newaxis]
-    E = np.reshape(E_vec, (3,3), 'F')
-
-    """U, S, VH = np.linalg.svd(E)
-
-    S_constrained = np.zeros((3,3))
-    S_constrained[0,0] = S[0]
-    S_constrained[1,1] = S[1]
-
-    return U.dot(S_constrained.dot(VH))"""
-
-    return E
-
 def estimate_essential_matrix_v2(y, y_prime, K1, K2):
     Y = np.zeros((8,9))
     for i in np.arange(len(y)):
@@ -52,15 +33,20 @@ def estimate_essential_matrix_v2(y, y_prime, K1, K2):
 
     return U.dot(S_constrained.dot(VH))
 
-    return E
-
 def estimate_external_parameters(E):
-    U, S, VH = np.linalg.svd(E)
-    W = np.asarray([[0,-1,0],[1,0,0],[0,0,1]])
-    t = U.dot(W.dot(S.dot(U.transpose())))
-    R = U.dot(W.transpose().dot(VH))
+    U, _, VH = np.linalg.svd(E)
+    Sp = np.asarray([[0,1,0],[-1,0,0],[0,0,1]])
+    Rp = np.asarray([[0,-1,0],[1,0,0],[0,0,1]])
+    S = U.dot(Sp.dot(U.transpose()))
+    R = np.linalg.det(U.dot(VH))*U.dot(Rp.dot(VH))
+    t = np.asarray([-S[0,1],S[0,2],-S[1,2]])
 
-    return R, VH.transpose()[:,-1]
+
+    """W = np.asarray([[0,-1,0],[1,0,0],[0,0,1]])
+    t = U.dot(W.dot(S.dot(U.transpose())))
+    R = U.dot(W.transpose().dot(VH))"""
+
+    return R, t
 
 def main():
     # Read in images and calibration parameters
@@ -102,13 +88,14 @@ def main():
         y.append(np.array([kp1[match.queryIdx].pt[0], kp1[match.queryIdx].pt[1], 1]))
         y_prime.append(np.array([kp2[match.trainIdx].pt[0], kp2[match.trainIdx].pt[1], 1]))
 
-    E = estimate_essential_matrix(y, y_prime, K1, K1)
-    E2 = estimate_essential_matrix_v2(y, y_prime, K1, K1)
+    E = estimate_essential_matrix_v2(y, y_prime, K1, K2)
 
     print(E)
-    print(E2)
 
     R, t = estimate_external_parameters(E)
+
+    print(R)
+    print(t)
 
 if __name__ == "__main__":
     main()

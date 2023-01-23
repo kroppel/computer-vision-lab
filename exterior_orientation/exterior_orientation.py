@@ -30,6 +30,10 @@ def collect_points(event, x, y, flags, points):
         print((x, y))
         points.append((x, y))
 
+"""Given internal parameters and 3D to 2D corresponding points,
+estimate the exterior orientation of the camera with respect 
+to the World Reference System
+"""
 def estimate_exterior_orientation(m, M, K):
     print(K)
     UM,SM,VHM = np.linalg.svd(M.transpose())
@@ -155,7 +159,7 @@ def main():
     cv2.destroyAllWindows()
 
     print("vector view 1 to view 2: ")
-    print((R2.dot(np.linalg.inv(R1).dot(-t1))+t2))
+    print(-np.linalg.inv(R2).dot(t2)+np.linalg.inv(R1).dot(t1) )
 
     print("------Rt1------")
     print(R1)
@@ -169,6 +173,7 @@ def main():
     print("------Rt2_Calib----")
     print(R2_)
     print(t2_)
+
 
 
 

@@ -208,8 +208,8 @@ def calibrate_new_book_scenes_example():
                     np.asarray([points2[4][0], points2[4][1], 1]),
                     np.asarray([points2[5][0], points2[5][1], 1])])
 
-    P1, K1, R1, t1 = calibration_direct_method.calibration_direct_method(M, m1)
-    P2, K2, R2, t2 = calibration_direct_method.calibration_direct_method(M, m2)
+    P1, K1, R1, t1 = calibration_direct_method.calibration_direct_method_v2(M, m1)
+    P2, K2, R2, t2 = calibration_direct_method.calibration_direct_method_v2(M, m2)
 
     # store projection matrices in files
     write_calibration_parameters_to_file("../images/data/new_params1", P1, K1, R1, t1)

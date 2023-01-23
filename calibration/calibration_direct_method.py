@@ -64,7 +64,7 @@ def calibration_direct_method(M, m):
     P_vec = VH.transpose()[:,-1][:,np.newaxis]
     P = np.reshape(P_vec, (3,4), 'F')
 
-    # normalization
+    # Normalization: As P is estimated up to scale, we can scale it in order to obtain a normalized form
     P = P/np.linalg.norm(P[2,0:3])
     if np.linalg.det(P[0:3,0:3]) < 0:
         print("Det Q:" + str(np.linalg.det(P[0:3,0:3])))
@@ -136,28 +136,31 @@ def calibration_direct_method_v2(M, m):
         P = P * -1
 
     # P = [Q,q] = [KR, Kt]
-    # -> factorize inv(Q) into inv(K*R) = inv(R) * inv(K)
+    # -> factorize inv(Q) = inv(K*R) = inv(R) * inv(K)
     # -> invert inv(R) to get R
     # -> calculate t = inv(K) * q
     q = P[:,-1,np.newaxis]
     Q = P[:,:-1]
     #R_inv, K_inv = np.linalg.qr(np.linalg.inv(Q))
     K_inv = np.linalg.qr(np.linalg.inv(Q), "r")
-
-    # ensure that element (2,2) of K is positive!
-    if K_inv[2,2] < 0:
-        K_inv *= -1
+    
+    # Ensure K is positive in all values (not necessary)
+    K_inv = -np.abs(K_inv)
+    for i in np.arange(3):
+        if K_inv[i,i] < 0:
+            K_inv[i,i] *= -1
 
     K = np.linalg.inv(K_inv)
     
+    # construct R to satisfy equation Q = KR
     R_inv = np.linalg.inv(Q).dot(K)
-
     R = np.linalg.inv(R_inv)
-    if np.linalg.det(R) < 0:
-        R *= -1
-    print("Determinant of R: " + str(np.linalg.det(R)))
 
     t = K_inv.dot(q)
+
+    print("OC:")
+    print(-np.linalg.inv(Q).dot(q))
+    print(K.dot(R)-Q)
         
     return P, K, R, t 
 
