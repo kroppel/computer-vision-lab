@@ -43,9 +43,6 @@ def transformation_distortion_direct(img_old, K, distortion_coefficient= -0.4):
     coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
 
     C = K[:,-1]
-    K = K / C[-1]
-    C = C / C[-1]
-
 
     alpha_u = K[0,0]
     axis_angle = np.arccos(K[0,1]/alpha_u)
@@ -76,9 +73,6 @@ def transformation_distortion_inverse(img_old, K, distortion_coefficient= -0.4):
     coordinates_x, coordinates_y = np.meshgrid(np.arange(1, img_old.shape[1]), np.arange(1, img_old.shape[0]))
 
     C = K[:,-1]
-    K = K / C[-1]
-    C = C / C[-1]
-
 
     alpha_u = K[0,0]
     axis_angle = np.arccos(K[0,1]/alpha_u)
@@ -100,52 +94,89 @@ def transformation_distortion_inverse(img_old, K, distortion_coefficient= -0.4):
 
     return img_new
 
-def estimate_distortion_coefficient(img, K, P):
-    # collect points indicated by user
-    points = []
-    cv2.imshow("image", img)
-    cv2.setMouseCallback('image', collect_calibration_points, points)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+"""Estimates the distortion coefficient using 3D to 2D correspondences and the perspective matrix of the image.
 
-    points_3D = [np.asarray([14.5, 23, 4, 1]), ]
-    m = P.dot(points_3D[0][:,np.newaxis])
-    m /= m[-1]
 
+Note: You have to collect as many image points as you define in points_3D variable.
+      Using points close to principal point should be avoided, as impreciseness impacts the estimation significantly.
+"""
+def estimate_distortion_coefficient(points, points_3D, K, P):
+    # 2 equations per point
+    coeff_est = np.zeros((2*len(points_3D))) 
+
+    # get principal point
     C = K[:,-1]
-    #K = K / C[-1]
-    #C = C / C[-1]
+    print("Principal Point: {}".format(C))    
 
+    for i in np.arange(len(points_3D)):
+        if len(points_3D) != len(points):
+            print("Warning: number of points collected ({}) not equal to number of 3D points defined ({})!".format(len(points), len(points_3D)))
+            exit(-1)
+        # get undistorted point projection (assuming P is correct)
+        m = P.dot(points_3D[i][:,np.newaxis])
+        m /= m[-1]
+        
+        # calculate RD_squared term
+        alpha_u = K[0,0]
+        axis_angle = np.arccos(K[0,1]/alpha_u)
+        alpha_v = K[1,1]*np.sin(axis_angle)
+        RD_squared = np.power((m[0]-C[0]) / (alpha_u), 2) \
+                + np.power((m[1]-C[1]) / (alpha_v), 2)
 
-    alpha_u = K[0,0]
-    axis_angle = np.arccos(K[0,1]/alpha_u)
-    alpha_v = K[1,1]*np.sin(axis_angle)
-
-
-    RD_squared = np.power((m[0]-C[0]) / (alpha_u), 2) \
-            + np.power((m[1]-C[1]) / (alpha_v), 2)
-
-
-    #return ((m[1]-C[1])*RD_squared*(points[0][1]-m[1])/(m[1]-C[1])*RD_squared*(m[1]-C[1])*RD_squared)
-    return ((m[0]-C[0])*RD_squared*(points[0][0]-m[0])/(m[0]-C[0])*RD_squared*(m[0]-C[0])*RD_squared)
+        # add equations
+        coeff_est[2*i] = (points[i][0]-m[0]) / ((m[0]-C[0])*RD_squared)
+        coeff_est[2*i+1] = (points[i][1]-m[1]) / ((m[1]-C[1])*RD_squared)
     
+    print("Coeff estimates: {}".format(coeff_est))
+    print("Coeff Average: {}".format(np.sum(coeff_est)/len(coeff_est)))
+    # return least squares estimation for coeff
+    return np.sum(np.power(coeff_est,2))/np.sum(coeff_est)
+    
+##### Read in image and parameters
+img_undistorted = cv2.imread('../images/new_scene1.jpg')
+P, K, R, t = helper.read_projection_matrix_from_file("../images/data/new_params1")
 
-img_undistorted = cv2.imread('../images/scene1.jpg')
+##### perform distortion transformation
+coeff = 0.7 # e.g. 0.7 for pincushion distortion,  e.g. -0.4 for barrel distortion
+print("distort image with coeff = " + str(coeff))
+#img_distorted = transformation_distortion_direct(img_undistorted, K, coeff)
+img_distorted = transformation_distortion_inverse(img_undistorted, K, coeff)
 
-P, K, R, t = helper.read_projection_matrix_from_file("../images/data/params1")
-
-# perform distortion transformation
-#img_distorted = transformation_distortion_direct(img_undistorted, K, -0.4)
-#img_distorted = transformation_distortion_direct(img_undistorted, K, 0.7)
-img_distorted = transformation_distortion_inverse(img_undistorted, K, 0.7)
-
-# resize and show images
+##### resize and show images
 img_undistorted_resize = cv2.resize(img_undistorted, (int(img_undistorted.shape[1]/2), int(img_undistorted.shape[0]/2)))
 img_distorted_resize = cv2.resize(img_distorted, (int(img_distorted.shape[1]/2), int(img_distorted.shape[0]/2)))
 img_combined = np.concatenate([img_undistorted_resize, img_distorted_resize], axis=1)
 
-# Not a correct estimation as the projection matrix is not the one of the distorted image!
-print("K estimation: " + str(estimate_distortion_coefficient(img_distorted, K, P)))
+##### estimate distortion coefficient using points collected by "user" or "ideal" (computed) distorted points
+collect_by_user = False
+points_3D = [np.asarray([14.5, 23, 4, 1]), np.asarray([14.5, 23, 0, 1]), np.asarray([14.5, 0, 0, 1])]
+points = []
+
+if collect_by_user:
+    cv2.imshow("distorted image", img_distorted)
+    cv2.setMouseCallback('distorted image', collect_calibration_points, points)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+else:
+    for point in points_3D:
+        # get undistorted point projection (assuming P is correct)
+        p = P.dot(point[:,np.newaxis])
+        p /= p[-1]
+
+        C = K[:,-1]
+        
+        alpha_u = K[0,0]
+        axis_angle = np.arccos(K[0,1]/alpha_u)
+        alpha_v = K[1,1]*np.sin(axis_angle)
+
+        RD_squared = np.power((p[0,0]-C[0]) / (alpha_u), 2) \
+                + np.power((p[1,0]-C[1]) / (alpha_v), 2)
+
+        new_coordinates_x = ((p[0,0]-C[0])*(1+coeff*RD_squared)+C[0]).astype(int)
+        new_coordinates_y = ((p[1,0]-C[1])*(1+coeff*RD_squared)+C[1]).astype(int)
+        points.append((new_coordinates_x, new_coordinates_y))
+
+print("coeff estimation: " + str(estimate_distortion_coefficient(points, points_3D, K, P)))
 
 cv2.imshow("image_original_and_distorted", img_combined)
 cv2.waitKey(0)
