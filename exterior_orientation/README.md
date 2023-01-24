@@ -13,3 +13,12 @@ Red dots represent the initially known corresponding points, while green dots ar
 ## Second Scene
 
 !["scene2"](../images/exterior_orientation2.jpg)
+
+## Estimated Parameters Comparison and Camera Distance:
+
+!["params"](../images/exterior_orientation_parameters.jpg)
+
+From the estimated parameters, one can for example estimate the positions of the two cameras and their distance:
+(Compute coordinates of optical centers and compute difference)
+
+!["distance"](../images/exterior_orientation_vector.jpg)

@@ -71,7 +71,7 @@ def estimate_exterior_orientation(m, M, K):
     M_centered = M - M_mean[np.newaxis,:]
     
     #### sign of s??
-    s = np.sum(np.linalg.norm(p_centered, axis=1) / np.linalg.norm(M_centered, axis=1))/p_centered.shape[0]
+    s = -np.sum(np.linalg.norm(p_centered, axis=1) / np.linalg.norm(M_centered, axis=1))/p_centered.shape[0]
     print("S: "+str(s))
     
     U, S, VH = np.linalg.svd((s*M_centered).transpose().dot(p_centered))
@@ -173,9 +173,6 @@ def main():
     print("------Rt2_Calib----")
     print(R2_)
     print(t2_)
-
-
-
 
 if __name__ == "__main__":
     main()
