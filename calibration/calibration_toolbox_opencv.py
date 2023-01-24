@@ -23,9 +23,9 @@ for file_name in os.listdir(PATH_TO_IMAGES):
         imgpoints.append(corners2)
         for corner in corners:
             cv2.circle(images[-1], (int(corner[0,0]), int(corner[0,1])), 2, color=(0,255,0), thickness=-1)
-        """cv2.imshow("image", images[-1])
+        cv2.imshow("image", images[-1])
         cv2.waitKey(0)
-        cv2.destroyAllWindows()"""
+        cv2.destroyAllWindows()
     else:
         print("No corners found")
 

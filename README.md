@@ -10,6 +10,16 @@ course 'Computer Vision', University of Verona, 2022.
 - Triangulation and Epipolar Geometry
 - Image Rectification
 - Image Mosaicing
+- Iterative Closest Point Algorithm
+- Exterior Orientation Estimation
+
+## Prerequisites
+
+Run
+
+`pip install -r requirements`
+
+to install all needed dependecies, or install each package manually.
 
 ## Note
 
