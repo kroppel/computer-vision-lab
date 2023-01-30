@@ -22,14 +22,10 @@ def estimate_essential_matrix_v2(y, y_prime, K1, K2):
 
     U, S, VH = np.linalg.svd(E)
 
-    print("SVD")
-    print(S)
-
     S_constrained = np.zeros((3,3))
     S_constrained[0,0] = (S[0]+S[1])/2
     S_constrained[1,1] = (S[0]+S[1])/2
     S_constrained[2,2] = 0
-
 
     return U.dot(S_constrained.dot(VH))
 
@@ -40,11 +36,6 @@ def estimate_external_parameters(E):
     S = U.dot(Sp.dot(U.transpose()))
     R = np.linalg.det(U.dot(VH))*U.dot(Rp.dot(VH))
     t = np.asarray([-S[0,1],S[0,2],-S[1,2]])
-
-
-    """W = np.asarray([[0,-1,0],[1,0,0],[0,0,1]])
-    t = U.dot(W.dot(S.dot(U.transpose())))
-    R = U.dot(W.transpose().dot(VH))"""
 
     return R, t
 
@@ -90,12 +81,15 @@ def main():
 
     E = estimate_essential_matrix_v2(y, y_prime, K1, K2)
 
+    print("Essential Matrix Estimation")
     print(E)
 
     R, t = estimate_external_parameters(E)
 
+    print("Relative External Parameter Estimation")
     print(R)
     print(t)
+    
 
 if __name__ == "__main__":
     main()

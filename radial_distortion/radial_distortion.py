@@ -137,7 +137,7 @@ img_undistorted = cv2.imread('../images/new_scene1.jpg')
 P, K, R, t = helper.read_projection_matrix_from_file("../images/data/new_params1")
 
 ##### perform distortion transformation
-coeff = 0.7 # e.g. 0.7 for pincushion distortion,  e.g. -0.4 for barrel distortion
+coeff = -0.4 # e.g. 0.7 for pincushion distortion,  e.g. -0.4 for barrel distortion
 print("distort image with coeff = " + str(coeff))
 #img_distorted = transformation_distortion_direct(img_undistorted, K, coeff)
 img_distorted = transformation_distortion_inverse(img_undistorted, K, coeff)
@@ -176,6 +176,7 @@ else:
         new_coordinates_y = ((p[1,0]-C[1])*(1+coeff*RD_squared)+C[1]).astype(int)
         points.append((new_coordinates_x, new_coordinates_y))
 
+print(points)
 print("coeff estimation: " + str(estimate_distortion_coefficient(points, points_3D, K, P)))
 
 cv2.imshow("image_original_and_distorted", img_combined)

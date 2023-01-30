@@ -2,10 +2,6 @@ import numpy as np
 import importlib.util
 import sys
 import cv2
-spec = importlib.util.spec_from_file_location("", "../calibration/calibration_direct_method.py")
-calibration_direct_method = importlib.util.module_from_spec(spec)
-sys.modules["calibration_direct_method"] = calibration_direct_method
-spec.loader.exec_module(calibration_direct_method)
 spec = importlib.util.spec_from_file_location("", "../shared/helper.py")
 helper = importlib.util.module_from_spec(spec)
 sys.modules["helper"] = helper
@@ -36,7 +32,7 @@ def draw_epipolar_line(img, P1, P2, m):
     p_inf /= p_inf[-1]
 
     # Draw epipolar line by calculating the line equation and the points on the image borders
-    F = calibration_direct_method.cross_product_matrix(e_prime).dot(P2[0:3,0:3].dot(np.linalg.inv(P1[0:3,0:3])))
+    F = helper.calibration_direct_method.cross_product_matrix(e_prime).dot(P2[0:3,0:3].dot(np.linalg.inv(P1[0:3,0:3])))
     epipolar_line_parameters = F.dot(m)
     epipolar_line_explicit = lambda x: (-epipolar_line_parameters[0]*x - epipolar_line_parameters[2])/epipolar_line_parameters[1]
 
