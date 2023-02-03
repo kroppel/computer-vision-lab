@@ -12,6 +12,7 @@ course 'Computer Vision', University of Verona, 2022.
 - Image Mosaicing
 - Iterative Closest Point Algorithm
 - Exterior Orientation Estimation
+- RANSAC outlier detection
 
 ## Prerequisites
 
