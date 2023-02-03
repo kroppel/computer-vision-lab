@@ -9,7 +9,8 @@ sys.modules["helper"] = helper
 spec.loader.exec_module(helper)
 
 """Estimate the homography that describes the relation between a planar scene 
-shown in two images given a set of corresponding points m1, m2
+shown in two images given a set of corresponding points m1, m2. The specific relation is
+m2 ~= H.dot(m1)
 
 Params:
     m1 (list):  list of points in the first (left) image
@@ -17,7 +18,7 @@ Params:
                 corresponding to the points in m1
 
 Returns:
-    h (np.ndarray): The homography matrix
+    H (np.ndarray): The homography matrix
 """
 def estimate_homography(m1, m2):
     A = np.zeros((2*len(m1),9))
