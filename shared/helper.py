@@ -78,7 +78,15 @@ def get_marked_rectangle(img):
         if(k == ord('q')):
             break
     cv2.destroyAllWindows()
-
+    # make left point always upper-left corner and right point always lower-right corner
+    if (rect_bounds[0][0]>rect_bounds[1][0]):
+        tmp = rect_bounds[0][0]
+        rect_bounds[0] = (rect_bounds[1][0], rect_bounds[0][1])
+        rect_bounds[1] = (tmp, rect_bounds[1][1])
+    if (rect_bounds[0][1]>rect_bounds[1][1]):
+        tmp = rect_bounds[0][1]
+        rect_bounds[0] = (rect_bounds[0][0], rect_bounds[1][1])
+        rect_bounds[1] = (rect_bounds[1][0], tmp)
     return rect_bounds
 
 def perform_orb_keypoint_matching(imgL, imgR):

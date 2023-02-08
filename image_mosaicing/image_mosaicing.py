@@ -94,19 +94,19 @@ def perform_mosaicing_it(imgL, imgR, H, mosaicing_shape):
 
 def main():
     # Read in images
-    #img1 = cv2.imread('../images/panorama_image1_big.jpg')
-    #img2 = cv2.imread('../images/panorama_image2_big.jpg')
+    img1 = cv2.imread('../images/panorama_image1_big.jpg')
+    img2 = cv2.imread('../images/panorama_image2_big.jpg')
 
-    img1 = cv2.imread('../images/bridge1.jpg')
-    img2 = cv2.imread('../images/bridge2.jpg')
+    #img1 = cv2.imread('../images/bridge1.jpg')
+    #img2 = cv2.imread('../images/bridge2.jpg')
 
     # Mark area from where keypoints are extracted, then match and filter keypoints
-    number_keypoints = 20
+    number_keypoints = 50
     imgL = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
     imgR = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
     rect_bounds = helper.get_marked_rectangle(np.copy(imgL))
     matches, kp1, kp2 = helper.perform_orb_keypoint_matching(imgL, imgR)
-    matches_filtered = helper.filter_keypoint_matches(matches, kp1, rect_bounds, 15)
+    matches_filtered = helper.filter_keypoint_matches(matches, kp1, rect_bounds, 15) # use threshold 15 for panorama and 30 for bridge
     if len(matches_filtered) < 4:
         print("Only found {} keypoint matches (Not enough!)".format(len(matches_filtered)))
         return
