@@ -89,6 +89,17 @@ def get_marked_rectangle(img):
         rect_bounds[1] = (rect_bounds[1][0], tmp)
     return rect_bounds
 
+"""Perform keypoint detection and matching using ORB
+
+Params:
+    imgL (np.ndarray):  Left input image
+    imgR (np.ndarray):  Right input image
+
+Returns:
+    matches (list): List of correspondences between keypoints
+    kp1 (list):     List of keypoints of left image
+    kp2 (list):     List of keypoints of right image
+"""
 def perform_orb_keypoint_matching(imgL, imgR):
     # Initiate ORB detector
     orb = cv2.ORB_create()
@@ -108,7 +119,17 @@ def perform_orb_keypoint_matching(imgL, imgR):
 
     return matches, kp1, kp2
 
-"""Filter given keypoint matches by x and y coordinate bounds
+"""Filter given keypoint matches by x and y coordinate bounds and their
+descriptors distance
+
+Params:
+    matches (list): List of correspondences between keypoints
+    kp1 (list):     List of keypoints of left image
+    bounds (list):  Keypoint coordinate bounds
+    distance (int): Maximum descriptor distance between two matches
+
+Returns:
+    matches_filtered (list):    List of filtered correspondences between keypoints
 """
 def filter_keypoint_matches(matches, kp1, bounds, distance):
     matches_filtered = []
@@ -121,7 +142,8 @@ def filter_keypoint_matches(matches, kp1, bounds, distance):
 
     return matches_filtered
 
-"""Perform the direct calibration method for the two example image scenes found in the data directory
+"""Perform the direct calibration method for the two example image scenes found 
+in the data directory
 """
 def calibrate_book_scenes_example():
     # Read in images
@@ -172,7 +194,8 @@ def calibrate_book_scenes_example():
     write_calibration_parameters_to_file("../images/data/params1", P1, K1, R1, t1)
     write_calibration_parameters_to_file("../images/data/params2", P2, K2, R2, t2)
 
-"""Perform the direct calibration method for the two new example image scenes found in the data directory
+"""Perform the direct calibration method for the two new example image scenes 
+found in the data directory
 """
 def calibrate_new_book_scenes_example():
     # Read in images
